@@ -100,6 +100,29 @@ def depthFirstSearch(problem:SearchProblem)->List[Direction]:
         INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
     '''
 
+    initial_state = problem.getStartState()
+    if problem.isGoalState(initial_state):
+        return []
+
+    pathStack = util.Stack()
+    pathStack.push((initial_state, []))
+    visited = set()
+
+    while not pathStack.isEmpty():
+        current_state, actions = pathStack.pop()
+
+        if current_state in visited:
+            continue
+
+        visited.add(current_state)
+
+        if problem.isGoalState(current_state):
+            return actions
+
+        for successor, action, _ in problem.getSuccessors(current_state):
+            if successor not in visited:
+                pathStack.push((successor, actions + [action]))
+
     util.raiseNotDefined()
 
 
