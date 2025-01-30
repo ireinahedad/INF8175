@@ -167,7 +167,8 @@ def uniformCostSearch(problem:SearchProblem)->List[Direction]:
     print("path", initial_state)
 
     pathPriorityQueue = util.PriorityQueue()
-    pathPriorityQueue.push((initial_state, []), 0)
+    initial_weight = 0
+    pathPriorityQueue.push((initial_state, []), initial_weight)
     visited = set()
     current_cost = {initial_state: 0}
 
@@ -202,6 +203,33 @@ def aStarSearch(problem:SearchProblem, heuristic=nullHeuristic)->List[Direction]
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 4 ICI
     '''
+    initial_state = problem.getStartState()
+    if problem.isGoalState(initial_state):
+        return []
+
+    pathPriorityQueue = util.PriorityQueue()
+    initial_weight = heuristic(initial_state, problem)
+    pathPriorityQueue.push((initial_state, []), initial_weight)
+
+    visited = set()
+    current_cost = {initial_state: 0}
+
+    while not pathPriorityQueue.isEmpty():
+        current_state, actions = pathPriorityQueue.pop()
+        if current_state in visited:
+            continue
+
+        visited.add(current_state)
+
+        if problem.isGoalState(current_state):
+            return actions
+
+        for successor, action, step_cost in problem.getSuccessors(current_state):
+            cost = current_cost[current_state] + step_cost
+            heuristic_cost = cost + heuristic(successor, problem)
+            if successor not in current_cost or cost < current_cost[successor]:
+                current_cost[successor] = cost
+                pathPriorityQueue.push((successor, actions + [action]), heuristic_cost)
 
     util.raiseNotDefined()
 
