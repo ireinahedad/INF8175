@@ -501,44 +501,66 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
 
-    foodList = foodGrid.asList()
+    food_positions = foodGrid.asList()
 
-    if not foodList:
+    if not food_positions:
         return 0
 
-    # Distance to the nearest food
-    distances = [util.manhattanDistance(position, food) for food in foodList]
-    nearest_food_distance = min(distances)
-
-    # minimum spanning tree (MST) cost of the remaining food positions
-    from util import PriorityQueue
-    import itertools
-
-    def mst_cost(points):
-        if not points:
-            return 0
-
-        pq = PriorityQueue()
-        start = points[0]
-        visited = set()
-        visited.add(start)
-        edges = [(util.manhattanDistance(start, point), start, point) for point in points if point != start]
-        for edge in edges:
-            pq.push(edge, edge[0])
-
-        mst_cost = 0
-        while not pq.isEmpty():
-            cost, point1, point2 = pq.pop()
-            if point2 not in visited:
-                visited.add(point2)
-                mst_cost += cost
-                for point in points:
-                    if point not in visited:
-                        pq.push((util.manhattanDistance(point2, point), point2, point), util.manhattanDistance(point2, point))
-
-        return mst_cost
-
-    mst_cost_value = mst_cost(foodList)
+    nearest_food_distance = min(bfs_distance(position, food, problem) for food in food_positions)
+    mst_cost_value = minimum_spanning_tree_cost(food_positions, problem)
 
     return nearest_food_distance + mst_cost_value
+
+def minimum_spanning_tree_cost(points, problem):
+    if not points:
+        return 0
+
+    priority_queue = util.PriorityQueue()
+    start_point = points[0]
+    visited_points = set()
+    visited_points.add(start_point)
+    edges = [(bfs_distance(start_point, point, problem), start_point, point) for point in points if point != start_point]
+    for edge in edges:
+        priority_queue.push(edge, edge[0])
+
+    total_cost = 0
+    while not priority_queue.isEmpty():
+        cost, point1, point2 = priority_queue.pop()
+        if point2 not in visited_points:
+            visited_points.add(point2)
+            total_cost += cost
+            for point in points:
+                if point not in visited_points:
+                    priority_queue.push((bfs_distance(point2, point, problem), point2, point), bfs_distance(point2, point, problem))
+
+    return total_cost
+
+def bfs_distance(start, goal, problem):
+    """
+    Returns the distance using BFS between start and goal
+    considering the walls. The goal of this BFS is to find the shortest path
+    between Pacman and the food position.
+    """
+    from util import Queue
+
+    queue = Queue()
+    queue.push((start, 0))
+    visited_positions = list([start])
+
+    while not queue.isEmpty():
+        current_position, current_distance = queue.pop()
+
+        if current_position == goal:
+            return current_distance
+
+        x, y = current_position
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            next_x, next_y = x + dx, y + dy
+            next_position = (next_x, next_y)
+
+            if next_position not in visited_positions and not problem.walls[next_position[0]][next_position[1]]:
+                visited_positions.append(next_position)
+                queue.push((next_position, current_distance + 1))
+
+    return float('inf')
 
