@@ -393,6 +393,8 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
 
+    # Based on Manhattan distance
+
     current_position, visited_corners = state
     unvisited_corners = [corner for i, corner in enumerate(corners) if not visited_corners[i]]
 
@@ -499,6 +501,44 @@ def foodHeuristic(state, problem: FoodSearchProblem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
 
+    foodList = foodGrid.asList()
 
-    return 0
+    if not foodList:
+        return 0
+
+    # Distance to the nearest food
+    distances = [util.manhattanDistance(position, food) for food in foodList]
+    nearest_food_distance = min(distances)
+
+    # minimum spanning tree (MST) cost of the remaining food positions
+    from util import PriorityQueue
+    import itertools
+
+    def mst_cost(points):
+        if not points:
+            return 0
+
+        pq = PriorityQueue()
+        start = points[0]
+        visited = set()
+        visited.add(start)
+        edges = [(util.manhattanDistance(start, point), start, point) for point in points if point != start]
+        for edge in edges:
+            pq.push(edge, edge[0])
+
+        mst_cost = 0
+        while not pq.isEmpty():
+            cost, point1, point2 = pq.pop()
+            if point2 not in visited:
+                visited.add(point2)
+                mst_cost += cost
+                for point in points:
+                    if point not in visited:
+                        pq.push((util.manhattanDistance(point2, point), point2, point), util.manhattanDistance(point2, point))
+
+        return mst_cost
+
+    mst_cost_value = mst_cost(foodList)
+
+    return nearest_food_distance + mst_cost_value
 
