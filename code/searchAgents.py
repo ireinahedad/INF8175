@@ -393,7 +393,15 @@ def cornersHeuristic(state, problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
     '''
 
-    return 0
+    current_position, visited_corners = state
+    unvisited_corners = [corner for i, corner in enumerate(corners) if not visited_corners[i]]
+
+    if not unvisited_corners:
+        return 0
+
+    distances = [util.manhattanDistance(current_position, corner) for corner in unvisited_corners]
+
+    return max(distances)
 
 class AStarCornersAgent(SearchAgent):
     "A SearchAgent for FoodSearchProblem using A* and your foodHeuristic"
