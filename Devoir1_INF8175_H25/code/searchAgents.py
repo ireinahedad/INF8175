@@ -11,6 +11,10 @@
 # Student side autograding was added by Brad Miller, Nick Hay, and
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
+# Noms et matricules des membres de l'équipe:
+# - Ireina Hedad - 2213673
+# - Thomas Rouleau - 2221053
+
 
 """
 This file contains all of the agents that can be selected to control Pacman.  To
@@ -292,7 +296,7 @@ class CornersProblem(search.SearchProblem):
         # in initializing the problem
 
         '''
-            INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+            SOLUTION À LA QUESTION 5
         '''
         self.startState = (self.startingPosition,(False, False, False, False))
 
@@ -303,7 +307,7 @@ class CornersProblem(search.SearchProblem):
         """
 
         '''
-            INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+            SOLUTION À LA QUESTION 5
         '''
         return self.startState
 
@@ -315,7 +319,7 @@ class CornersProblem(search.SearchProblem):
         """
 
         '''
-            INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+            SOLUTION À LA QUESTION 5
         '''
 
         _, corners_visited = state
@@ -345,7 +349,7 @@ class CornersProblem(search.SearchProblem):
             #   hitsWall = self.walls[nextx][nexty]
 
             '''
-                INSÉREZ VOTRE SOLUTION À LA QUESTION 5 ICI
+                SOLUTION À LA QUESTION 5
             '''
             x, y = state[0]
             dx, dy = Actions.directionToVector(action)
@@ -390,11 +394,10 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 6 ICI
+        SOLUTION À LA QUESTION 6
     '''
 
     # Based on Manhattan distance
-
     current_position, visited_corners = state
     unvisited_corners = [corner for i, corner in enumerate(corners) if not visited_corners[i]]
 
