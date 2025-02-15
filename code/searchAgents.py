@@ -497,10 +497,6 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     """
     position, foodGrid = state
 
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
-    '''
-
     food_positions = foodGrid.asList()
 
     if not food_positions:
@@ -541,11 +537,11 @@ def bfs_distance(start, goal, problem):
     considering the walls. The goal of this BFS is to find the shortest path
     between Pacman and the food position.
     """
-    from util import Queue
 
-    queue = Queue()
+    queue = util.Queue()
     queue.push((start, 0))
-    visited_positions = list([start])
+    visited = set()
+    visited.add(start)
 
     while not queue.isEmpty():
         current_position, current_distance = queue.pop()
@@ -555,11 +551,10 @@ def bfs_distance(start, goal, problem):
 
         x, y = current_position
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            next_x, next_y = x + dx, y + dy
-            next_position = (next_x, next_y)
+            next_position = (x + dx, y + dy)
 
-            if next_position not in visited_positions and not problem.walls[next_position[0]][next_position[1]]:
-                visited_positions.append(next_position)
+            if next_position not in visited and not problem.walls[next_position[0]][next_position[1]]:
+                visited.add(next_position)
                 queue.push((next_position, current_distance + 1))
 
     return float('inf')
