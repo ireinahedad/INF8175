@@ -39,17 +39,25 @@ class MyPlayer(PlayerDivercite):
         Returns:
             Action: The best action as determined by minimax.
         """
-        possible_actions = possible_actions = current_state.generate_possible_heavy_actions()
+        possible_actions = list(current_state.generate_possible_heavy_actions())  # Convert to list first
+
         if not possible_actions:
             return None  # No valid move
 
-        #best_action, best_value = None, float('-inf')
-        best_action = next(possible_actions)
+        if len(possible_actions) > 10:
+            possible_actions = sorted(
+            possible_actions,
+            key=lambda action: self.evaluate_state(action.get_next_game_state()),
+            reverse=True
+            )[:10]  # Keep only the top 10 actions
+
+
+        best_action = next(iter(possible_actions))
         best_value = best_action.get_next_game_state().scores[self.get_id()]
 
         for action in possible_actions:
             next_state = action.get_next_game_state()
-            _, value = self.Fakeminimax(next_state, self.depth - 1, True, float('-inf'), float('inf'))
+            _, value = self.Minimax(next_state, self.depth - 1, True, float('-inf'), float('inf'))
 
             if value > best_value:
                 best_value = value
@@ -57,25 +65,30 @@ class MyPlayer(PlayerDivercite):
 
         return best_action
 
-    def Fakeminimax(self, state: GameState, depth: int, is_maximizing: bool, alpha: float, beta: float):
+
+
+
+    def Minimax(self, state: GameState, depth: int, is_maximizing: bool, alpha: float, beta: float):
         if depth == 0 or not list(state.get_possible_heavy_actions()):
-            print("depth is zero")
             return None, self.evaluate_state(state)
 
-        if is_maximizing:
-            return self.maxValue(state, depth, alpha, beta)
-        else:
-            return self.minValue(state, depth, alpha, beta)
+        return self.maxValue(state, depth, alpha, beta)
 
 
 
     def maxValue(self, state: GameState, depth: int, alpha: float, beta: float):
+
         if depth == 0 or not list(state.get_possible_heavy_actions()):
             return None, self.evaluate_state(state)
 
         max_eval = float('-inf')
         best_action = None
-        possible_actions = list(state.get_possible_heavy_actions())[:5]
+        possible_actions = sorted(
+            list(state.get_possible_heavy_actions())[:10],
+            key=lambda action: self.evaluate_state(action.get_next_game_state()),
+            reverse=True
+        )
+
 
         for action in possible_actions:
             next_state = action.get_next_game_state()
@@ -85,20 +98,25 @@ class MyPlayer(PlayerDivercite):
                 max_eval = eval
                 best_action = action
 
-            alpha = max(alpha, max_eval)
+            alpha = max(alpha, eval)
             if beta <= alpha:  # Alpha-beta pruning
                 break
+
 
         return best_action, max_eval
 
     def minValue(self, state: GameState, depth: int, alpha: float, beta: float):
+
         if depth == 0 or not list(state.get_possible_heavy_actions()):
             return None, self.evaluate_state(state)
 
         min_eval = float('inf')
         best_action = None
-        possible_actions = list(state.get_possible_heavy_actions())[:5]
-
+        possible_actions = sorted(
+            list(state.get_possible_heavy_actions())[:5],
+            key=lambda action: self.evaluate_state(action.get_next_game_state()),
+            reverse=False
+        )
         for action in possible_actions:
             next_state = action.get_next_game_state()
             _, eval = self.maxValue(next_state, depth - 1, alpha, beta)
@@ -107,7 +125,7 @@ class MyPlayer(PlayerDivercite):
                 min_eval = eval
                 best_action = action
 
-            beta = min(beta, min_eval)
+            beta = min(beta, eval)
             if beta <= alpha:  # Alpha-beta pruning
                 break
 
