@@ -1,3 +1,0 @@
-class: "PartialCreditQuestion"
-max_points: "5"
-depends: "q4"
