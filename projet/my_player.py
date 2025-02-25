@@ -49,7 +49,7 @@ class MyPlayer(PlayerDivercite):
             possible_actions,
             key=lambda action: self.evaluate_state(action.get_next_game_state()),
             reverse=True
-            )[:20]  # Keep only the top 20 actions
+            )[:40]  # Keep only the top 20 actions
 
 
         best_action = next(iter(possible_actions))
