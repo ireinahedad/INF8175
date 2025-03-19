@@ -60,24 +60,46 @@ def solve(schedule: Schedule):
 
     # 2. Fonction de définition du voisinage
     def generate_neighborhood(solution, max_neighbors=50):
-        """Génère le voisinage d'une solution en changeant un cours de créneau"""
+        """
+        Generates neighbors by moving the most conflictual courses to less conflictual time slots.
+        :param solution: Current solution.
+        :param schedule: Schedule object for validation.
+        :param max_neighbors: Maximum number of neighbors to generate.
+        :return: List of valid neighbors.
+        """
         neighborhood = []
-        courses = list(solution.keys())
 
+        # Identify courses with the most conflicts
+        conflict_scores = {
+            course: len(schedule.get_node_conflicts(course))
+            for course in solution
+        }
+
+        # Sort courses by conflict score (most to least conflicting)
+        sorted_courses = sorted(conflict_scores, key=conflict_scores.get, reverse=True)
+
+        # Generate neighbors by moving most conflicting courses to less conflicting slots
         for _ in range(max_neighbors):
-            course = random.choice(courses)
-            new_timeslot = random.randint(1, len(courses))
+            # Pick a highly conflictual course
+            most_conflictual = random.choice(sorted_courses[:len(sorted_courses)])
 
-            if solution[course] != new_timeslot:
-                neighbor = solution.copy()
-                neighbor[course] = new_timeslot
+            # Find less conflictual slots
+            potential_slots = list(range(1, len(solution) + 1))
+            random.shuffle(potential_slots)
 
-                # Vérifie la validité du voisin
-                try:
-                    schedule.verify_solution(neighbor)
-                    neighborhood.append(neighbor)
-                except AssertionError:
-                    continue
+            # Move to a less conflictual slot
+            for new_slot in potential_slots:
+                if solution[most_conflictual] != new_slot:
+                    neighbor = solution.copy()
+                    neighbor[most_conflictual] = new_slot
+
+                    # Validate and add the neighbor
+                    try:
+                        schedule.verify_solution(neighbor)
+                        neighborhood.append(neighbor)
+                        break  # Only add one valid neighbor per iteration
+                    except AssertionError:
+                        continue
 
         return neighborhood
 
@@ -124,7 +146,9 @@ def solve(schedule: Schedule):
             neighbor_score = evaluate(selected_neighbor)
 
             # Metropolis criterion
-            if neighbor_score < current_score or random.random() < math.exp((current_score - neighbor_score) / temp):
+            delta = neighbor_score - current_score
+            metropolis_prob = math.exp(-delta / temp)
+            if delta < 0 or random.random() < metropolis_prob:
                 current_solution = selected_neighbor
                 current_score = neighbor_score
                 iterations_without_improvement = 0
@@ -162,6 +186,6 @@ def solve(schedule: Schedule):
 
     best_solution = initial_solution
 
-    best_solution = simulated_annealing(initial_solution, initial_temp=1000000, min_temp=0.001, alpha=0.999, max_iterations=100000, reheat_interval=2000)
+    best_solution = simulated_annealing(initial_solution, initial_temp=1000000, min_temp=0.001, alpha=0.999, max_iterations=100000, reheat_interval=1000)
 
     return best_solution
