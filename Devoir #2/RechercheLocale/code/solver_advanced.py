@@ -59,44 +59,32 @@ def solve(schedule: Schedule):
         return solution
 
     # 2. Fonction de définition du voisinage
-    def generate_neighborhood(solution):
-        """Génère le voisinage d'une solution en changeant un cours de créneau ou en échangeant des créneaux entre deux cours."""
+    def generate_neighborhood(solution, max_neighbors=50):
+        """Génère le voisinage d'une solution en changeant un cours de créneau"""
         neighborhood = []
         courses = list(solution.keys())
 
-        for course in courses:
-            current_timeslot = solution[course]
-            possible_timeslots = list(set(range(1, len(courses) + 1)) - {current_timeslot})
-            random.shuffle(possible_timeslots)
+        for _ in range(max_neighbors):
+            course = random.choice(courses)
+            new_timeslot = random.randint(1, len(courses))
 
-            for timeslot in possible_timeslots:
-                if all(solution.get(neighbor) != timeslot for neighbor in schedule.get_node_conflicts(course)):
-                    neighbor_solution = solution.copy()
-                    neighbor_solution[course] = timeslot
-                    neighborhood.append(neighbor_solution)
-                    break
+            if solution[course] != new_timeslot:
+                neighbor = solution.copy()
+                neighbor[course] = new_timeslot
 
-            # Swap timeslots between two courses
-            for other_course in courses:
-                if course != other_course and solution[course] != solution[other_course]:
-                    neighbor_solution = solution.copy()
-                    neighbor_solution[course], neighbor_solution[other_course] = neighbor_solution[other_course], neighbor_solution[course]
-                    neighborhood.append(neighbor_solution)
+                # Vérifie la validité du voisin
+                try:
+                    schedule.verify_solution(neighbor)
+                    neighborhood.append(neighbor)
+                except AssertionError:
+                    continue
 
         return neighborhood
 
-    # 3. Fonction de définition des voisins valide
-    def select_valid_neighbors(neighborhood, current_score, tabu_list):
-        """Sélectionne les voisins qui améliorent la solution actuelle."""
-        valid_neighbors = [neighbor for neighbor in neighborhood if evaluate(neighbor) <= current_score and neighbor not in tabu_list]
-        return valid_neighbors
-
     # 4. Fonction de sélection d'un voisin (probabiliste)
     def select_neighbor(neighborhood):
-        """Sélectionne un voisin parmi ceux qui améliorent la solution, avec une probabilité de choisir un voisin aléatoire."""
-        if random.random() < 0.1 and len(neighborhood) > 1:
-            return random.choice(neighborhood)
-        return min(neighborhood, key=evaluate)
+        """Sélectionne un voisin parmi ceux qui améliorent la solution actuelle."""
+        return min(neighborhood, key=lambda n: evaluate(n))
 
     # 5. Fonction d'évaluation
     def evaluate(solution):
@@ -120,20 +108,19 @@ def solve(schedule: Schedule):
         iterations_without_improvement = 0
 
         start_time = time.time()
-        max_time = 280
+        max_time = 290
 
         for i in range(max_iterations):
             if temp < min_temp or time.time() - start_time > max_time:
                 print(f"Stopping at iteration {i} with temperature {temp}")
                 break
 
-            current_neighborhood = generate_neighborhood(current_solution)
-            valid_neighborhood = select_valid_neighbors(current_neighborhood, current_score, tabu_list)
-            if not valid_neighborhood:
+            current_neighborhood = generate_neighborhood(current_solution, len(initial_solution) // 2)
+            if not current_neighborhood:
                 iterations_without_improvement += 1
                 continue
 
-            selected_neighbor = select_neighbor(valid_neighborhood)
+            selected_neighbor = select_neighbor(current_neighborhood)
             neighbor_score = evaluate(selected_neighbor)
 
             # Metropolis criterion
@@ -159,13 +146,13 @@ def solve(schedule: Schedule):
                 print(f"Reheating at iteration {i}, new temp: {temp}")
 
             # Early stopping criteria
-            if iterations_without_improvement > 1000:
+            if iterations_without_improvement > 500:
                 print("Early stopping due to lack of improvement.")
                 break
 
         return best_solution
 
-    # Sélection du générateur de solution initiale
+    # Sélection du générateur de solution initiale, Greedy est beaucoup plus performant comme solution initiale
     greedy = False
 
     if greedy:
@@ -175,6 +162,6 @@ def solve(schedule: Schedule):
 
     best_solution = initial_solution
 
-    best_solution = simulated_annealing(initial_solution, initial_temp=2000, min_temp=1, alpha=0.995, max_iterations=100000, reheat_interval=2000)
+    best_solution = simulated_annealing(initial_solution, initial_temp=1000000, min_temp=0.001, alpha=0.999, max_iterations=100000, reheat_interval=2000)
 
     return best_solution
