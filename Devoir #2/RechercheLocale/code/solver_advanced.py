@@ -111,12 +111,12 @@ def solve(schedule: Schedule):
     # 5. Fonction d'évaluation
     def evaluate(solution):
         """Évalue la qualité d'une solution en comptant le nombre de conflits."""
-        conflicts = 0
-        for course, slot in solution.items():
-            for neighbor in schedule.get_node_conflicts(course):
-                if neighbor in solution and solution[neighbor] == slot:
-                    conflicts += 1
-        return schedule.get_n_creneaux(solution) + conflicts
+        try:
+            schedule.verify_solution(solution)
+            penalty = 0
+        except AssertionError:
+            penalty = 1000
+        return schedule.get_n_creneaux(solution) + penalty
 
     # 7. Simulated_annealing pour tester les solutions n'ayant pas amélioré la solution actuelle
     def simulated_annealing(initial_solution, initial_temp, min_temp, alpha, max_iterations, reheat_interval):
@@ -166,12 +166,12 @@ def solve(schedule: Schedule):
 
             # Reheating mechanism
             if i != 0 and i % reheat_interval == 0:
-                temp = max(temp * 0.5, min_temp)  # Diminution progressive
+                temp = min(temp * 1.5, initial_temp)  # Diminution progressive
                 print(f"Reheating at iteration {i}, new temp: {temp}")
 
             # Early stopping criteria
             if iterations_without_improvement > 500:
-                print("Early stopping due to lack of improvement.")
+                print("Early stopping due to lack of improvement or change.")
                 break
 
         return best_solution
