@@ -139,11 +139,11 @@ def solve(schedule: Schedule):
 
             current_neighborhood = generate_neighborhood(current_solution, len(initial_solution) // 2)
             if not current_neighborhood:
-                iterations_without_improvement += 1
                 continue
 
             selected_neighbor = select_neighbor(current_neighborhood)
             neighbor_score = evaluate(selected_neighbor)
+
 
             # Metropolis criterion
             delta = neighbor_score - current_score
@@ -151,12 +151,14 @@ def solve(schedule: Schedule):
             if delta < 0 or random.random() < metropolis_prob:
                 current_solution = selected_neighbor
                 current_score = neighbor_score
-                iterations_without_improvement = 0
 
             if current_score < best_score:
                 best_solution = current_solution
                 best_score = current_score
                 print(f"New best solution found at iteration {i}: {best_score}")
+                iterations_without_improvement = 0
+            else:
+                iterations_without_improvement += 1
 
             tabu_list.append(current_solution)
             if len(tabu_list) > 10:  # Limit the size of the tabu list
@@ -170,14 +172,14 @@ def solve(schedule: Schedule):
                 print(f"Reheating at iteration {i}, new temp: {temp}")
 
             # Early stopping criteria
-            if iterations_without_improvement > 500:
+            if iterations_without_improvement > 5000:
                 print("Early stopping due to lack of improvement or change.")
                 break
 
         return best_solution
 
     # Sélection du générateur de solution initiale, Greedy est beaucoup plus performant comme solution initiale
-    greedy = False
+    greedy = True
 
     if greedy:
         initial_solution = initial_greedy_solution_generator()
