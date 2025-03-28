@@ -1,5 +1,5 @@
-% NOM_ETUDIANT_1 (MATRICULE_1)
-% NOM_ETUDIANT_2 (MATRICULE_2)
+% Ireina Hedad (2213673)
+% Thomas Rouleau (2221053)
 
 include "globals.mzn";
 
@@ -23,7 +23,32 @@ var int: p;
 %-----------------------------------------------------------------------------%
 % Partie étudiant
 %-----------------------------------------------------------------------------%
+% 1. Nombre pair
+constraint nombre mod 2 = 0;
+% 2. chiffre 0 non présent dans le nombre
+% Contrainte de décomposition assurant que les chiffres en position équivalent = nombre.
+% puisque chiffres est du domainre 1..9 => aucun chiffre dans nombre = 0 avece cette contrainte.
+constraint nombre = 1000 * chiffres[1] + 100 * chiffres[2] + 10 * chiffres[3] + chiffres[4];
 
+% 3. les 4 chiffres différents
+constraint alldifferent(chiffres);
+
+% 4. chiffre milliers > chiffre centaines
+constraint chiffres[1] > chiffres[2];
+
+% 5. chiffre dizaines < chiffre unités
+constraint chiffres[3] < chiffres[4];
+
+% 6. chiffre centaines > chiffre unités
+constraint chiffres[2] > chiffres[4];
+
+% 7. Somme 4 chiffres > 15
+constraint sum(chiffres) > 15;
+
+% 8. Produit 3 derniers chiffres minimisé => 
+p = chiffres[2] * chiffres[3] * chiffres[4];
+
+solve minimize p;
 
 %-----------------------------------------------------------------------------%
 
