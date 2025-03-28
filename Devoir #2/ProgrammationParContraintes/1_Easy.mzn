@@ -1,5 +1,5 @@
-% NOM_ETUDIANT_1 (MATRICULE_1)
-% NOM_ETUDIANT_2 (MATRICULE_2)
+% Ireina Hedad (2213673)
+% Thomas Rouleau (2221053)
 
 include "globals.mzn";
 
@@ -25,6 +25,22 @@ array [1..n] of var 1..n: assignation_role;
 % Partie étudiant
 %-----------------------------------------------------------------------------%
 
+% 1. Un seul acteur (colonnes) par rôles (lignes)
+constraint all_different(assignation_role);
+
+% 2. Costume demandé pour rôle choisi unique
+array[1..n] of var costumes: costume_acteur; 
+constraint forall(i in 1..n)(
+    costume_acteur[i] = choix_costume[assignation_role[i], i]
+);
+
+% 3. aucun acteur avec rôles adjacent (diagonal, vertical ou horizontal acteurs/colonnes)
+constraint forall(i in 1..n-1)(
+    abs(assignation_role[i] - assignation_role[i+1]) > 1
+);
+
+% 4. Conflit de costume
+constraint all_different(costume_acteur);
 
 
 %-----------------------------------------------------------------------------%
