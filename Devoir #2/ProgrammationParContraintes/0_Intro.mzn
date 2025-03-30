@@ -1,5 +1,5 @@
-% NOM_ETUDIANT_1 (MATRICULE_1)
-% NOM_ETUDIANT_2 (MATRICULE_2)
+% Thomas Rouleau (2221053)
+% Ireina Hedad (2213673)
 
 include "globals.mzn";
 
@@ -24,10 +24,25 @@ var int: p;
 % Partie étudiant
 %-----------------------------------------------------------------------------%
 
+constraint nombre = chiffres[1] * 1000 + chiffres[2] * 100 + chiffres[3] * 10 + chiffres[4];
+constraint all_different(chiffres); % Tous les chiffres doivent être différents
+constraint nombre mod 2 = 0; % Nombre pair
+constraint chiffres[1] > chiffres[2]; % Milliers > Centaines
+constraint chiffres[3] < chiffres[4]; % Dizaines < Unités
+constraint chiffres[2] > chiffres[4]; % Centaines > Unités
+constraint sum(chiffres) > 15; % Somme des chiffres > 15
+
+% Définition du produit des trois derniers chiffres
+constraint p = chiffres[2] * chiffres[3] * chiffres[4];
 
 %-----------------------------------------------------------------------------%
+% Optimisation
+%-----------------------------------------------------------------------------%
 
-output [
-  show(nombre)
-];
+solve minimize p;
 
+%-----------------------------------------------------------------------------%
+% Sortie
+%-----------------------------------------------------------------------------%
+
+output [show(nombre)];
