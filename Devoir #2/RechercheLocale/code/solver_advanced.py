@@ -1,3 +1,6 @@
+# Ireina Hedad (2213673)
+# Thomas Rouleau (2221053)
+
 import random
 import math
 import time
