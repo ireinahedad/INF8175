@@ -61,43 +61,35 @@ def solve(schedule: Schedule):
     # 2. Fonction de définition du voisinage
     def generate_neighborhood(solution, max_neighbors=50):
         """
-        Generates neighbors by moving the most conflictual courses to less conflictual time slots.
-        :param solution: Current solution.
-        :param schedule: Schedule object for validation.
-        :param max_neighbors: Maximum number of neighbors to generate.
-        :return: List of valid neighbors.
+        Génère un voisinage en déplaçant les cours les plus conflictuels vers des créneaux moins conflictuels.
         """
         neighborhood = []
 
-        # Identify courses with the most conflicts
+        # Identifier les cours avec le plus de conflits
         conflict_scores = {
             course: len(schedule.get_node_conflicts(course))
             for course in solution
         }
 
-        # Sort courses by conflict score (most to least conflicting)
         sorted_courses = sorted(conflict_scores, key=conflict_scores.get, reverse=True)
 
-        # Generate neighbors by moving most conflicting courses to less conflicting slots
         for _ in range(max_neighbors):
-            # Pick a highly conflictual course
             most_conflictual = random.choice(sorted_courses[:len(sorted_courses)])
 
-            # Find less conflictual slots
             potential_slots = list(range(1, len(solution) + 1))
             random.shuffle(potential_slots)
 
-            # Move to a less conflictual slot
+            # Déplacement du cours le plus conflictuel vers un créneau moins conflictuel
             for new_slot in potential_slots:
                 if solution[most_conflictual] != new_slot:
                     neighbor = solution.copy()
                     neighbor[most_conflictual] = new_slot
 
-                    # Validate and add the neighbor
+                    # Vérification de la validité du voisin
                     try:
                         schedule.verify_solution(neighbor)
                         neighborhood.append(neighbor)
-                        break  # Only add one valid neighbor per iteration
+                        break # Sortir de la boucle si un voisin valide est trouvé
                     except AssertionError:
                         continue
 
@@ -133,6 +125,8 @@ def solve(schedule: Schedule):
         max_time = 290
 
         for i in range(max_iterations):
+            # Vérification de la température et du temps écoulé
+            # Si la température est trop basse ou si le temps écoulé dépasse la limite, on arrête
             if temp < min_temp or time.time() - start_time > max_time:
                 print(f"Stopping at iteration {i} with temperature {temp}")
                 break
@@ -155,23 +149,22 @@ def solve(schedule: Schedule):
             if current_score < best_score:
                 best_solution = current_solution
                 best_score = current_score
-                print(f"New best solution found at iteration {i}: {best_score}")
                 iterations_without_improvement = 0
             else:
                 iterations_without_improvement += 1
 
             tabu_list.append(current_solution)
-            if len(tabu_list) > 10:  # Limit the size of the tabu list
+            if len(tabu_list) > 10:  # Limiter la taille de la liste Tabu
                 tabu_list.pop(0)
 
             temp *= alpha
 
-            # Reheating mechanism
+            # Mécanisme de réchauffement
             if i != 0 and i % reheat_interval == 0:
                 temp = min(temp * 1.5, initial_temp)  # Diminution progressive
                 print(f"Reheating at iteration {i}, new temp: {temp}")
 
-            # Early stopping criteria
+            # Mécanisme d'arrêt précoce
             if iterations_without_improvement > 5000:
                 print("Early stopping due to lack of improvement or change.")
                 break
