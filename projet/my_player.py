@@ -41,7 +41,7 @@ class MyPlayer(PlayerDivercite):
         is_early_game = self._is_early_game(current_state)
 
         if is_early_game:
-            action = self.mcts_decision(current_state, possible_actions)
+            action = self.find_best_action_with_mcts(current_state, possible_actions)
         else:
             # Get only the action (ignore the float value)
             action, _ = self.find_best_action_with_minimax(current_state, possible_actions)
@@ -138,7 +138,7 @@ class MyPlayer(PlayerDivercite):
         opponent_id = state.get_next_player().get_id()
         return state.scores.get(player_id, 0) - state.scores.get(opponent_id, 0)
 
-    def mcts_decision(self, state: GameStateDivercite, actions: List[HeavyAction]) -> Action:
+    def find_best_action_with_mcts(self, state: GameStateDivercite, actions: List[HeavyAction]) -> Action:
             """Simple MCTS implementation for early game"""
             action_stats = {action: {'wins': 0, 'plays': 0} for action in actions}
 
