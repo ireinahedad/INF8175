@@ -29,9 +29,9 @@ class MyPlayer(PlayerDivercite):
         super().__init__(piece_type, name)
         # Add any information you want to store about the player here
         # self.json_additional_info = {}
-        self.early_move_threshold = 10  # Use MCTS for first 10 moves
-        self.minimax_depth = 3
-        self.mcts_iterations = 100
+        self.early_move_threshold = 15  # Use MCTS for first 15 moves
+        self.minimax_depth = 5
+        self.mcts_iterations = 150
         self.move_count = 0
 
     def compute_action(self, current_state: GameStateDivercite , remaining_time: int = 1e9, **kwargs) -> Action:
@@ -190,14 +190,21 @@ class MyPlayer(PlayerDivercite):
 
         return max(action_stats.keys(), key=ucb_score)
 
-    def simulate_random_game(self, state: GameStateDivercite, greedy_probability: float = 0.8) -> float:
+    def simulate_random_game(self, state: GameStateDivercite)  -> float:
         """
-        Mixed playout strategy: combines random and greedy strategies.
+        Mixed playout strategy with progressive transition based on game progression.
         """
         while not state.is_done():
             actions = list(state.generate_possible_heavy_actions())
             if not actions:
                 break
+
+            # Calculate game progression as a percentage (0.0 to 1.0)
+            game_progress = state.get_step() / state.max_step
+            # Random probability possible only for the first 10th of the game to add some randomness
+            greedy_static_probability = 0.90
+            # Adjust greedy probability based on game progression
+            greedy_probability = game_progress + greedy_static_probability
 
             if random.random() < greedy_probability:
                 # Greedy strategy: choose the action that maximizes the score
