@@ -190,19 +190,26 @@ class MyPlayer(PlayerDivercite):
 
         return max(action_stats.keys(), key=ucb_score)
 
-    def simulate_random_game(self, state: GameStateDivercite) -> float:
-        """Greedy playout from current state"""
+    def simulate_random_game(self, state: GameStateDivercite, greedy_probability: float = 0.8) -> float:
+        """
+        Mixed playout strategy: combines random and greedy strategies.
+        """
         while not state.is_done():
             actions = list(state.generate_possible_heavy_actions())
             if not actions:
                 break
 
-            # Choisir l'action qui maximise le score pour le joueur actuel
-            best_action = max(
-                actions,
-                key=lambda action: action.get_next_game_state().scores[self.get_id()]
-            )
+            if random.random() < greedy_probability:
+                # Greedy strategy: choose the action that maximizes the score
+                best_action = max(
+                    actions,
+                    key=lambda action: action.get_next_game_state().scores[self.get_id()]
+                )
+            else:
+                # Random strategy: choose a random action
+                best_action = random.choice(actions)
+
             state = best_action.get_next_game_state()
 
-        # Retourner le score final pour le joueur actuel
+        # Return the final score for the current player
         return state.scores[self.get_id()]
