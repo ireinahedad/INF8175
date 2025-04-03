@@ -59,13 +59,13 @@ class MyPlayer(PlayerDivercite):
         is_early_game = self._is_early_game(current_state)
 
         if is_early_game:
-            action = self.find_best_action_with_mcts(current_state, possible_actions)
+            best_action = self.find_best_action_with_mcts(current_state, possible_actions)
         else:
             # Get only the action (ignore the float value)
-            action, _ = self.find_best_action_with_minimax(current_state, possible_actions)
+            best_action, _ = self.find_best_action_with_minimax(current_state, possible_actions)
 
         self.move_count += 1
-        return action  # Return just the Action object
+        return best_action  # Return just the Action object
 
 
     def _is_early_game(self, state: GameStateDivercite) -> bool:
@@ -154,7 +154,8 @@ class MyPlayer(PlayerDivercite):
     def evaluate_state(self, state: GameState) -> float:
         player_id = self.get_id()
         opponent_id = state.get_next_player().get_id()
-        return state.scores.get(player_id, 0) - state.scores.get(opponent_id, 0)
+        score_diff = state.scores.get(player_id, 0) - state.scores.get(opponent_id, 0)
+        return score_diff
 
     def find_best_action_with_mcts(self, state: GameStateDivercite, actions: List[HeavyAction]) -> Action:
             """Simple MCTS implementation for early game"""
@@ -165,6 +166,7 @@ class MyPlayer(PlayerDivercite):
                 action = self.select_action_by_ucb(action_stats)
 
                 # Simulation - play random game to completion
+                # TODO: Use a more sophisticated simulation strategy, like greedy (implemented in greedy_player)??
                 result = self.simulate_random_game(action.get_next_game_state())
 
                 # Backpropagation - update statistics
@@ -189,10 +191,18 @@ class MyPlayer(PlayerDivercite):
         return max(action_stats.keys(), key=ucb_score)
 
     def simulate_random_game(self, state: GameStateDivercite) -> float:
-        """Random playout from current state"""
+        """Greedy playout from current state"""
         while not state.is_done():
             actions = list(state.generate_possible_heavy_actions())
             if not actions:
                 break
-            state = random.choice(actions).get_next_game_state()
+
+            # Choisir l'action qui maximise le score pour le joueur actuel
+            best_action = max(
+                actions,
+                key=lambda action: action.get_next_game_state().scores[self.get_id()]
+            )
+            state = best_action.get_next_game_state()
+
+        # Retourner le score final pour le joueur actuel
         return state.scores[self.get_id()]
